@@ -62,7 +62,11 @@
                 "Issue #2107455: Image field default value not shown when upload destination set to private file storage": "https://www.drupal.org/files/issues/2022-06-24/2107455-75.patch",
                 "Issue #3052115: Mark an entity as 'syncing' during a migration update": "https://www.drupal.org/files/issues/2023-02-01/3052115-59.patch",
                 "Issue #3332546: CommentSelection::entityQueryAlter() fails on validate when referencing entity is not a comment": "https://www.drupal.org/files/issues/2023-01-11/3332546-6-comment_selection_entityqueryalter.patch",
-                "2924783 - Fatal error on entity autocomplete widget if entity label contains parentheses": "https://www.drupal.org/files/issues/2021-04-18/2924783-18.patch"
+                "2924783 - Fatal error on entity autocomplete widget if entity label contains parentheses": "https://www.drupal.org/files/issues/2021-04-18/2924783-18.patch",
+                "#2924061: Create views plugins for date range fields": "https://www.drupal.org/files/issues/2019-04-15/2924061-14.patch",
+                "#2898635: [PP-1] bundleFieldDefinitions() are not added in EntityViewsData": "https://www.drupal.org/files/issues/2020-01-16/2898635-28.patch",
+                "#3218230: Decorate config entity storage errors": "https://www.drupal.org/files/issues/2022-01-10/3218230-decorate-config-entity-storage-errors-7.patch",
+                "#3302838: Querying with NULL values results in warning mb_strtolower(): Passing null to parameter is deprecated": "https://www.drupal.org/files/issues/2022-08-23/3302838-13.patch"
             },
             "drupal/config_update": {
                 "3248161: Symfony 4.4 event dispatcher parameter order change": "https://www.drupal.org/files/issues/2021-11-08/symfony-4-4-event-dispatcher-parameter-order-change-3248161-3.patch"
@@ -101,9 +105,9 @@
                 "Improve how the module deals with non-embeddable URLs & WSODs (See: https://www.drupal.org/project/social/issues/2930457#comment-13973067)": "https://www.drupal.org/files/issues/2021-01-22/urlembed-non-embeddable-urls-2761187-opensocial-combined-21.patch",
                 "Support for Facebook/Instagram API changes - add access token settings": "https://www.drupal.org/files/issues/2021-07-14/url_embed-add-facebook-access-token-config-3177860-opensocial-2.patch",
                 "Embed Preview throws 403 forbidden": "https://www.drupal.org/files/issues/2023-03-17/url_embed-preview-403-3285139-10.patch",
-                "Issue #3382821: preg_split in _filter_url breaks for long html tags (improvement for issue 3360661)" :"https://www.drupal.org/files/issues/2023-08-23/3382821-url_embed-preg-split.patch.diff"
+                "Issue #3382821: preg_split in _filter_url breaks for long html tags (improvement for issue 3360661)": "https://www.drupal.org/files/issues/2023-08-23/3382821-url_embed-preg-split.patch.diff"
             },
-            "drupal/views_infinite_scroll" : {
+            "drupal/views_infinite_scroll": {
                 "Headers in table format repeat on load more instead of adding rows (v1.8)": "https://www.drupal.org/files/issues/2021-02-11/2899705-35.patch"
             },
             "drupal/redirect": {
@@ -124,7 +128,7 @@
         "drupal/config_modify": "^1",
         "drupal/config_update": "1.7",
         "drupal/core": "~9.5",
-        "drupal/core-composer-scaffold": "~9.5.3",
+        "drupal/core-composer-scaffold": "~9.5",
         "drupal/crop": "2.3.0",
         "drupal/csv_serialization": "2.1.0",
         "drupal/ctools": "3.11",
