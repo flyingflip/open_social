@@ -63,6 +63,25 @@ function social_core_theme() {
 }
 
 /**
+ * Implements hook_module_implements_alter().
+ */
+function social_core_module_implements_alter(array &$implementations, string $hook): void {
+  switch ($hook) {
+    // See field_group_module_implements_alter()
+    // They are forcing the form_alter() to be executed last, Open Social
+    // has multiple form_alters that relies on #fieldgroup attribute so its very
+    // important that the field_group_form_alter() is executed before them.
+    case 'form_alter':
+      $altered_implementations = [
+        'field_group' => FALSE,
+      ];
+      unset($implementations['field_group']);
+      $implementations = array_merge($altered_implementations, $implementations);
+      break;
+  }
+}
+
+/**
  * Implements hook_modules_installed().
  */
 function social_core_modules_installed($modules) {
@@ -133,7 +152,10 @@ function social_core_preprocess_node(&$variables) {
   // If machine name too long or using another image field.
   if (!$node->hasField($image_field)) {
     $node_fields = $node->getFields();
-    $image_fields = array_filter($node_fields, '_social_core_find_image_field');
+    $find_image_field = '_social_core_find_image_field';
+    assert(is_callable($find_image_field));
+    /** @var callable(Drupal\Core\Field\FieldItemListInterface<Drupal\Core\Field\FieldItemInterface>):bool|null $find_image_field */
+    $image_fields = array_filter($node_fields, $find_image_field);
 
     // Get the first image field of all the fields.
     if ($image_fields) {

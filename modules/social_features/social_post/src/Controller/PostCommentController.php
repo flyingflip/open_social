@@ -17,7 +17,7 @@ class PostCommentController extends SocialCommentController {
   public function getReplyForm(Request $request, EntityInterface $entity, $field_name, $pid = NULL) {
     $account = $this->currentUser();
 
-    // The user is not just previewing a comment.
+    // @phpstan-ignore-next-line
     if ($request->request->get('op') != $this->t('Preview')) {
       // $pid indicates that this is a reply to a comment.
       if ($pid) {

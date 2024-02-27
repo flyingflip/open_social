@@ -26,7 +26,7 @@ class GroupContext extends RawMinkContext {
   use GroupTrait;
 
   /**
-   * Keep track of all groups that are created so they can easily be removed.
+   * Keep track of all groups that are created, so they can easily be removed.
    */
   private array $groups = [];
 
@@ -67,9 +67,10 @@ class GroupContext extends RawMinkContext {
    * Create multiple groups at the start of a test.
    *
    * Creates group of a given type provided in the form:
-   * | author | title    | description     | author   | type        | language
-   * | user-1 | My title | My description  | username | open_group  | en
-   * | ...    | ...      | ...             | ...      | ...         | ...
+   * | author | title      | description     | author   | type        | language | field_group_allowed_visibility |
+   * | user-1 | My title 1 | My description  | username | flexible_group  | en       | public                         |
+   * | user-1 | My title 2 | My description  | username | flexible_group  | en       | public,community,group         |
+   * | ...    | ...        | ...             | ...      | ...         | ...      | ...                            |
    *
    * @Given groups:
    */
@@ -85,7 +86,7 @@ class GroupContext extends RawMinkContext {
    *
    * Creates group of a given type provided in the form:
    * | title    | description     | author   | type        | language
-   * | My title | My description  | username | open_group  | en
+   * | My title | My description  | username | flexible_group  | en
    * | ...      | ...             | ...      | ...         | ...
    *
    * @Given groups with non-anonymous owner:
@@ -122,7 +123,7 @@ class GroupContext extends RawMinkContext {
    *
    * Creates group of a given type provided in the form:
    * | title    | description     | author   | type        | language
-   * | My title | My description  | username | open_group  | en
+   * | My title | My description  | username | flexible_group  | en
    * | ...      | ...             | ...      | ...         | ...
    *
    * @Given groups owned by current user:
@@ -186,9 +187,6 @@ class GroupContext extends RawMinkContext {
    */
   public function whenICreateAGroupUsingTheForm(string $group_type, TableNode $fields): void {
     $group_types = [
-      'public' => 'public_group',
-      'open' => 'open_group',
-      'closed' => 'closed_group',
       'flexible' => 'flexible_group',
     ];
     $group_type_selector = $group_types[$group_type] ?? NULL;
@@ -658,6 +656,11 @@ class GroupContext extends RawMinkContext {
     }
     $group['uid'] = $account->id();
     unset($group['author']);
+
+    // Allow using multiple values.
+    if (isset($group['field_group_allowed_visibility']) && str_contains($group['field_group_allowed_visibility'], ',')) {
+      $group['field_group_allowed_visibility'] = explode(',', $group['field_group_allowed_visibility']);
+    }
 
     // Let's create some groups.
     $this->validateEntityFields('group', $group);

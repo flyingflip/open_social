@@ -7,7 +7,7 @@ dependencies:
     - search_api
   config:
     - field.storage.group.field_group_description
-    - search_api.server.social_database
+    - search_api.server.social_solr
     - core.entity_view_mode.group.teaser
 id: social_groups
 name: 'Social Groups'
@@ -61,8 +61,7 @@ field_settings:
         anonymous: anonymous
       view_mode:
         'entity:group':
-          closed_group: teaser
-          open_group: teaser
+          flexible_group: teaser
   type:
     label: Type
     datasource_id: 'entity:group'
@@ -234,4 +233,4 @@ tracker_settings:
 options:
   index_directly: false
   cron_limit: 50
-server: social_database
+server: social_solr

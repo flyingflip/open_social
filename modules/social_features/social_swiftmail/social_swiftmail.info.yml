@@ -4,7 +4,7 @@ description: Social Swiftmailer implementation
 core_version_requirement: ^9 || ^10
 package: Social
 dependencies:
-  - swiftmailer:swiftmailer
-  - mailsystem:mailsystem
+  - symfony_mailer:symfony_mailer
+  - activity_send:activity_send_email
   - social:social_editor
   - social:social_core

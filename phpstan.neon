@@ -3,6 +3,7 @@ includes:
 
 rules:
   - Drupal\social\PHPStan\Rules\CorrectUpdateHelperUsage
+  - Drupal\social\PHPStan\Rules\DisallowPrivateModuleFunctions
 
 parameters:
   level: 8
@@ -19,7 +20,6 @@ parameters:
       - translations/
     analyse:
       - *SocialProfileTrait.php
-      - modules/custom/social_graphql/src/GraphQL/Violation.php
   # Not sure we can specify generic types properly with Drupal coding standards
   # yet, disable for now.
   checkGenericClassInNonGenericObjectType: false
@@ -68,3 +68,5 @@ parameters:
   ignoreErrors:
       # See - https://github.com/mglaman/drupal-check/pull/187
       - '#Unsafe usage of new static\(\)#'
+      # Until https://www.drupal.org/project/social/issues/3420070.
+      - '#^Fetching class constant class of deprecated class Drupal\\social_group\\Form\\SocialGroupAddForm#'

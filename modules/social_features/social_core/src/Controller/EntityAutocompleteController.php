@@ -24,6 +24,7 @@ class EntityAutocompleteController extends EntityAutocompleteControllerBase {
     $matches = [];
     // Get the typed string from the URL, if it exists.
     if ($input = $request->query->get('q')) {
+      assert(is_string($input));
       $typed_string = Tags::explode($input);
       $typed_string = mb_strtolower(array_pop($typed_string));
 

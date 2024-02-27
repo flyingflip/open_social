@@ -63,10 +63,10 @@ class AddToCalendarIcsController extends ControllerBase {
     $dates = $this->request->get('dates');
     $timezone = $this->request->get('timezone');
 
-    // Generate DTSTAMP, which needs to be the time the ICS object created.
+    // Generate timestamp, which needs to be the time the ICS object created.
     // https://icalendar.org/iCalendar-RFC-5545/3-6-1-event-component.html
     $now = new \DateTime('now', new \DateTimezone('UTC'));
-    $dtstamp = $now->format('Ymd\THis\Z');
+    $dateTimeStamp = $now->format('Ymd\THis\Z');
 
     // Create ICS filename.
     $name = md5(serialize($this->request->query->all()));
@@ -113,7 +113,7 @@ class AddToCalendarIcsController extends ControllerBase {
       }
 
       // Add the DTSTAMP.
-      $file_data[] = 'DTSTAMP:' . $dtstamp;
+      $file_data[] = 'DTSTAMP:' . $dateTimeStamp;
 
       // Set location.
       if ($this->request->get('location')) {

@@ -5,22 +5,9 @@
  * Install, update and uninstall functions for the social_search module.
  */
 
-use Drupal\Core\Entity\EntityStorageException;
-use Drupal\Core\Site\Settings;
 use Drupal\search_api\Entity\Index;
+use Drupal\search_api\Entity\Server;
 use Drupal\user\RoleInterface;
-
-/**
- * Implements hook_update_dependencies().
- */
-function social_search_update_dependencies() {
-  // Necessary because we delete a view with geolocation filter.
-  // Needs to be done before system_update_8200 and social_group_update_8005.
-  $dependencies['social_group'][8005] = [
-    'social_search' => 8102,
-  ];
-  return $dependencies;
-}
 
 /**
  * Implements hook_install().
@@ -64,291 +51,114 @@ function social_search_install() {
 }
 
 /**
- * Trigger a search_api re-index.
+ * Implements hook_update_dependencies().
  */
-function social_search_update_8601() {
-  $index = Index::load('social_content');
-  if ($index->status()) {
-    $index->clear();
-    $index->reindex();
-  }
-}
-
-/**
- * Install Better Exposed Filter module.
- */
-function social_search_update_8701() {
-  $modules = [
-    'better_exposed_filters',
+function social_search_update_dependencies(): array {
+  // Ensure configurations updates runs after the group migration has completed,
+  // but before the group types are removed.
+  $dependencies['social_search'][13002] = [
+    'social_group' => 13000,
   ];
-  \Drupal::service('module_installer')->install($modules);
-}
-
-/**
- * Add expertise and interests fields as fulltext to search users.
- */
-function social_search_update_8901() {
-  /** @var \Drupal\update_helper\Updater $updateHelper */
-  $updateHelper = \Drupal::service('update_helper.updater');
-
-  // Execute configuration update definitions with logging of success.
-  $updateHelper->executeUpdate('social_search', 'social_search_update_8901');
-
-  // Output logged messages to related channel of update execution.
-  return $updateHelper->logger()->output();
-}
-
-/**
- * Update search users with expertise and interests.
- */
-function social_search_update_8902() {
-  try {
-    $index = Index::load('social_users');
-    if ($index !== NULL && $index->status()) {
-      $index->save();
-      $index->clear();
-      $index->reindex();
-    }
-  }
-  catch (EntityStorageException $e) {
-    \Drupal::logger('social_search')->info($e->getMessage());
-  }
-}
-
-/**
- * Change weight of search index processors().
- */
-function social_search_update_8903() {
-  // Config factory.
-  $config_factory = Drupal::configFactory();
-
-  // Get search API index configs.
-  $search_all = $config_factory->getEditable('search_api.index.social_all');
-  $search_content = $config_factory->getEditable('search_api.index.social_content');
-  $search_groups = $config_factory->getEditable('search_api.index.social_groups');
-  $search_users = $config_factory->getEditable('search_api.index.social_users');
-
-  // Setting that need to be changed.
-  $setting = 'processor_settings.html_filter.weights.preprocess_index';
-
-  // Set new weight for the 'HTML filter' processors.
-  $search_all->set($setting, -25)->save();
-  $search_content->set($setting, -15)->save();
-  $search_groups->set($setting, -15)->save();
-  $search_users->set($setting, -15)->save();
-}
-
-/**
- * Configuration update: Enable Entity Access By Field processor.
- */
-function social_search_update_8904() {
-  /** @var \Drupal\update_helper\Updater $updateHelper */
-  $updateHelper = \Drupal::service('update_helper.updater');
-
-  // Execute configuration update definitions with logging of success.
-  $updateHelper->executeUpdate('social_search', 'social_search_update_8904');
-
-  // Output logged messages to related channel of update execution.
-  return $updateHelper->logger()->output();
-}
-
-/**
- * Update Search index.
- */
-function social_search_update_8905() {
-  try {
-    $indexes = [
-      'social_all',
-      'social_content',
-    ];
-
-    foreach ($indexes as $index) {
-      $index = Index::load($index);
-      if ($index !== NULL && $index->status()) {
-        $index->save();
-        $index->clear();
-        $index->reindex();
-      }
-    }
-  }
-  catch (EntityStorageException $e) {
-    \Drupal::logger('social_search')->info($e->getMessage());
-  }
-}
-
-/**
- * Removed created field for profile and added 'Owner » User » Created' field.
- */
-function social_search_update_10001() {
-  /** @var \Drupal\update_helper\Updater $updateHelper */
-  $updateHelper = \Drupal::service('update_helper.updater');
-
-  // Execute configuration update definitions with logging of success.
-  $updateHelper->executeUpdate('social_search', 'social_search_update_10001');
-
-  // Output logged messages to related channel of update execution.
-  return $updateHelper->logger()->output();
-}
-
-/**
- * Update search users with new 'created' field.
- */
-function social_search_update_10002() {
-  try {
-    $social_user_update_indexes = Settings::get('social_user_update_indexes', TRUE);
-    $index = Index::load('social_users');
-    if ($index !== NULL && $index->status() && $social_user_update_indexes) {
-      $index->save();
-      $index->clear();
-      $index->reindex();
-    }
-  }
-  catch (EntityStorageException $e) {
-    \Drupal::logger('social_search')->info($e->getMessage());
-  }
-}
-
-/**
- * Add translation support for search views.
- */
-function social_search_update_10201() {
-  /** @var \Drupal\update_helper\Updater $updateHelper */
-  $updateHelper = \Drupal::service('update_helper.updater');
-
-  // Execute configuration update definitions with logging of success.
-  $updateHelper->executeUpdate('social_search', 'social_search_update_10201');
-
-  // Output logged messages to related channel of update execution.
-  return $updateHelper->logger()->output();
-}
-
-/**
- * Update the Search All (Index Social all) view configuration.
- */
-function social_search_update_10301() {
-  /** @var \Drupal\update_helper\Updater $updateHelper */
-  $updateHelper = \Drupal::service('update_helper.updater');
-
-  // Execute configuration update definitions with logging of success.
-  $updateHelper->executeUpdate('social_search', 'social_search_update_10301');
-
-  // Output logged messages to related channel of update execution.
-  return $updateHelper->logger()->output();
-}
-
-/**
- * Update the Search Groups "type" filter.
- */
-function social_search_update_10302() {
-  /** @var \Drupal\update_helper\Updater $updateHelper */
-  $updateHelper = \Drupal::service('update_helper.updater');
-
-  // Execute configuration update definitions with logging of success.
-  $updateHelper->executeUpdate('social_search', __FUNCTION__);
-
-  // Output logged messages to related channel of update execution.
-  return $updateHelper->logger()->output();
-}
-
-/**
- * Add the processor "Skip not Verified users" to indexes.
- */
-function social_search_update_11001(): string {
-  /** @var \Drupal\update_helper\Updater $updateHelper */
-  $updateHelper = \Drupal::service('update_helper.updater');
-
-  // Execute configuration update definitions with logging of success.
-  $updateHelper->executeUpdate('social_search', __FUNCTION__);
-
-  // Output logged messages to related channel of update execution.
-  return $updateHelper->logger()->output();
-}
-
-/**
- * Update exposed filter button name.
- */
-function social_search_update_11401(): string {
-  /** @var \Drupal\update_helper\Updater $updateHelper */
-  $updateHelper = \Drupal::service('update_helper.updater');
-
-  // Execute configuration update definitions with logging of success.
-  $updateHelper->executeUpdate('social_search', __FUNCTION__);
-
-  // Output logged messages to related channel of update execution.
-  return $updateHelper->logger()->output();
-}
-
-/**
- * Replace search_api_language with language_with_fallback filter in the search.
- */
-function social_search_update_11402(): string {
-  /** @var \Drupal\update_helper\Updater $updateHelper */
-  $updateHelper = \Drupal::service('update_helper.updater');
-
-  // Execute configuration update definitions with logging of success.
-  $updateHelper->executeUpdate('social_search', __FUNCTION__);
-
-  // Output logged messages to related channel of update execution.
-  return $updateHelper->logger()->output();
-}
-
-/**
- * Revert search_api_language filter name/id change.
- */
-function social_search_update_11403() : void {
-  // In social_search_update_11402
-  // (https://github.com/goalgorilla/open_social/pull/3470/) we changed the
-  // search_api_language filter to a language_with_fallback filter to ensure
-  // that users could find matching content in different languages if no version
-  // in their own language was available. However, this also changed the IDs of
-  // the filter which can break existing sites that might rely on that filter.
-  // Below we go through the views and change the filter back to the ID it had,
-  // just with the new field added to the index.
-  $views = [
-    "views.view.search_all",
-    "views.view.search_content",
+  $dependencies['social_group'][13001] = [
+    'social_search' => 13002,
   ];
 
-  foreach ($views as $view) {
-    $config = \Drupal::configFactory()->getEditable($view);
-    $display = $config->get("display");
+  return $dependencies;
+}
 
-    $filter = $display['default']['display_options']['filters']['language_with_fallback'];
-    $filter['id'] = "search_api_language";
-    $display['default']['display_options']['filters']["search_api_language"] = $filter;
-    unset($display['default']['display_options']['filters']['language_with_fallback']);
+/**
+ * Implements hook_update_last_removed().
+ */
+function social_search_update_last_removed() : int {
+  return 11404;
+}
 
-    $config->set('display', $display);
-    $config->save(TRUE);
+/**
+ * Migrate to SOLR for our search back-end.
+ */
+function social_search_update_13000() : void {
+  \Drupal::service('module_installer')->install(["search_api_solr"]);
+
+  $new_server = Server::create([
+    'langcode' => 'en',
+    'status' => TRUE,
+    'dependencies' => [
+      'module' => [
+        'search_api_solr',
+      ],
+    ],
+    'id' => 'social_solr',
+    'name' => 'Social SOLR',
+    'description' => '',
+    'backend' => 'search_api_solr',
+    'backend_config' => [
+      'connector' => 'standard',
+      'connector_config' => [
+        'scheme' => 'http',
+        'host' => 'solr',
+        'port' => 8983,
+        'path' => '/',
+        'core' => 'drupal',
+        'timeout' => 5,
+        'index_timeout' => 5,
+        'optimize_timeout' => 10,
+        'finalize_timeout' => 30,
+        'commit_within' => 1000,
+        'solr_version' => '',
+        'http_method' => 'AUTO',
+        'jmx' => FALSE,
+        'solr_install_dir' => '/opt/solr',
+      ],
+      'disabled_field_types' => [],
+      'retrieve_data' => FALSE,
+      'highlight_data' => FALSE,
+      'skip_schema_check' => FALSE,
+      'server_prefix' => '',
+      'domain' => 'generic',
+      'optimize' => FALSE,
+      'site_hash' => FALSE,
+    ],
+  ]);
+  $new_server->save();
+
+  // We want to migrate all indices that exist to the new search server.
+  // These are all, content, groups, and users for the distribution but might be
+  // others for SaaS extensions or custom work.
+  foreach (Index::loadMultiple() as $index) {
+    $index->setServer($new_server)->save();
   }
 }
 
 /**
- * Revert search_api_language filter name/id change for groups view.
+ * Clean up database search back-end.
  */
-function social_search_update_11404() : void {
-  // There was a typo in the view name of social_search_update_11403 which
-  // caused the groups view not to be updated, so we must do it again here.
-  $views = [
-    "views.view.search_groups",
-  ];
+function social_search_update_13001() : void {
+  // This is done as a separate hook so that contrib has the possibility of
+  // placing any custom work in between the migration and the clean-up. e.g. to
+  // do any custom work we're not aware of.
+  Server::load("social_database")?->delete();
 
-  foreach ($views as $view) {
-    $config = \Drupal::configFactory()->getEditable($view);
-    $display = $config->get("display");
+  \Drupal::service('module_installer')->uninstall(["search_api_db"], FALSE);
+}
 
-    $filter = $display['default']['display_options']['filters']['language_with_fallback'];
-    $filter['id'] = "search_api_language";
-    $display['default']['display_options']['filters']["search_api_language"] = $filter;
-    unset($display['default']['display_options']['filters']['language_with_fallback']);
-
-    $config->set('display', $display);
-    $config->save(TRUE);
+/**
+ * Remove deprecated group types.
+ */
+function social_search_update_13002(): ?string {
+  // Allow platforms to opt out of the group migration, for example if they want
+  // to build it themselves and take more scenario's into account than common
+  // Open Social installations will have.
+  if (\Drupal::state()->get('social_group_group_type_migration_opt_out', FALSE)) {
+    \Drupal::logger('social_group')->info('Platform has opted out of group migration.');
+    return NULL;
   }
 
-  // Clean up the config created in our erroneous version of 11403.
-  $incorrect_view = \Drupal::configFactory()->getEditable("views.view.search_group");
-  if (!$incorrect_view->isNew()) {
-    $incorrect_view->delete();
-  }
+  /** @var \Drupal\update_helper\Updater $updateHelper */
+  $updateHelper = \Drupal::service('update_helper.updater');
+
+  // Execute configuration update definitions with logging of success.
+  $updateHelper->executeUpdate('social_search', __FUNCTION__);
+
+  // Output logged messages to related channel of update execution.
+  return $updateHelper->logger()->output();
 }

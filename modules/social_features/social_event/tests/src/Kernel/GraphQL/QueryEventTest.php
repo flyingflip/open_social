@@ -71,6 +71,7 @@ class QueryEventTest extends SocialGraphQLTestBase {
     // https://github.com/drupal-graphql/graphql/pull/1220 is merged.
     'social_topic',
     'variationcache',
+    'better_exposed_filters',
   ];
 
   /**
@@ -201,7 +202,7 @@ class QueryEventTest extends SocialGraphQLTestBase {
             'timestamp' => $event->getCreatedTime(),
           ],
           'heroImage' => [
-            'url' => \Drupal::service('file_url_generator')->generateAbsoluteString($event_image->getFileUri()),
+            'url' => is_null($event_image->getFileUri()) ? 'core/misc/druplicon.png' : \Drupal::service('file_url_generator')->generateAbsoluteString($event_image->getFileUri()),
           ],
           'managers' => [
             'nodes' => [

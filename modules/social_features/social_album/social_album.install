@@ -137,35 +137,6 @@ function _social_album_set_group_permissions() {
     $current = $previous = array_merge($previous, $current);
   }
 
-  $permissions = [
-    'open_group' => [
-      'outsider' => [
-        'view group_node:album entity',
-        'view group_node:album content',
-      ],
-    ],
-    'public_group' => [
-      'anonymous' => [
-        'view group_node:album entity',
-        'view group_node:album content',
-      ],
-    ],
-  ];
-
-  foreach ($permissions as &$type_permissions) {
-    $all_type_permissions = $previous = [];
-
-    foreach ($common_permissions as $role_id => $common_permissions_list) {
-      if (isset($type_permissions[$role_id])) {
-        $previous = array_merge($previous, $type_permissions[$role_id]);
-      }
-
-      $all_type_permissions[$role_id] = array_unique(array_merge($common_permissions_list, $previous));
-    }
-
-    $type_permissions = $all_type_permissions;
-  }
-
   $type_storage = \Drupal::entityTypeManager()->getStorage('group_type');
 
   /** @var \Drupal\group\Entity\Storage\GroupRoleStorageInterface $role_storage */
@@ -187,7 +158,7 @@ function _social_album_set_group_permissions() {
         $role = $role_storage->load($type_role_id);
 
         $role
-          ->grantPermissions($permissions[$type_id][$role_id] ?? $common_permissions[$role_id])
+          ->grantPermissions($common_permissions[$role_id])
           ->save();
       }
     }
@@ -217,161 +188,49 @@ function _social_album_blocks(callable $function = NULL, array $items = [
 }
 
 /**
- * Set some default group permissions and check them on the group albums page.
- */
-function social_album_update_8901() {
-  // Set some default group permissions.
-  _social_album_set_group_permissions();
-
-  /** @var \Drupal\update_helper\UpdaterInterface $update_helper */
-  $update_helper = \Drupal::service('update_helper.updater');
-
-  // Execute configuration update definitions with logging of success.
-  $update_helper->executeUpdate('social_album', 'social_album_update_8901');
-
-  // Output logged messages to related channel of update execution.
-  return $update_helper->logger()->output();
-}
-
-/**
- * Delete references to not exists albums in posts.
- */
-function social_album_update_8902() {
-  \Drupal::database()->delete('post__field_album')
-    ->condition('field_album_target_id', "0")
-    ->execute();
-}
-
-/**
- * Limitate styling for modal windows only by post modal windows.
- */
-function social_album_update_8903() {
-  /** @var \Drupal\update_helper\UpdaterInterface $update_helper */
-  $update_helper = \Drupal::service('update_helper.updater');
-
-  // Execute configuration update definitions with logging of success.
-  $update_helper->executeUpdate('social_album', 'social_album_update_8902');
-
-  // Output logged messages to related channel of update execution.
-  return $update_helper->logger()->output();
-}
-
-/**
- * Delete duplicate of title from the group album creation page.
- */
-function social_album_update_8904() {
-  _social_core_install_blocks([
-    'socialblue_pagetitleblock_content' => [
-      '/group/*/albums/add',
-    ],
-  ]);
-}
-
-/**
- * Update album form labels.
- */
-function social_album_update_10201() {
-  /** @var \Drupal\update_helper\Updater $updateHelper */
-  $updateHelper = \Drupal::service('update_helper.updater');
-
-  // Execute configuration update definitions with logging of success.
-  $updateHelper->executeUpdate('social_album', 'social_album_update_10201');
-
-  // Output logged messages to related channel of update execution.
-  return $updateHelper->logger()->output();
-}
-
-/**
  * Implements hook_update_dependencies().
  */
 function social_album_update_dependencies(): array {
-  // Run the update hook with the "Grant Profile permissions for the
-  // Authenticated user role" only after an update hook "Reassign permissions
-  // between roles" in social_core.
-  $dependencies['social_user'][11001] = [
-    'social_core' => 11002,
+  // Ensure configurations updates runs after the group migration has completed,
+  // but before the group types are removed.
+  $dependencies['social_album'][13000] = [
+    'social_group' => 13000,
+  ];
+  $dependencies['social_group'][13001] = [
+    'social_album' => 13000,
   ];
 
   return $dependencies;
 }
 
 /**
- * Grant Profile permissions for the Authenticated user role.
+ * Implements hook_update_last_removed().
  */
-function social_album_update_11001(): void {
-  // Authenticated user role permissions.
-  user_role_grant_permissions(
-    RoleInterface::AUTHENTICATED_ID,
-    [
-      'view node.album.field_content_visibility:public content',
-    ]
-  );
+function social_album_update_last_removed() : int {
+  return 11471;
 }
 
 /**
- * Update exposed filter button name.
+ * Remove deprecated group types.
  */
-function social_album_update_11401(): string {
-  /** @var \Drupal\update_helper\Updater $updateHelper */
-  $updateHelper = \Drupal::service('update_helper.updater');
+function social_album_update_13000(): void {
+  // Allow platforms to opt out of the group migration, for example if they want
+  // to build it themselves and take more scenario's into account than common
+  // Open Social installations will have.
+  if (\Drupal::state()->get('social_group_group_type_migration_opt_out', FALSE)) {
+    \Drupal::logger('social_group')->info('Platform has opted out of group migration.');
+    return;
+  }
 
-  // Execute configuration update definitions with logging of success.
-  $updateHelper->executeUpdate('social_album', __FUNCTION__);
+  foreach ([
+    'group.content_type.closed_group-group_node-album',
+    'group.content_type.open_group-group_node-album',
+    'group.content_type.public_group-group_node-album',
+    'group.content_type.secret_group-group_node-album',
+  ] as $config) {
+    \Drupal::configFactory()
+      ->getEditable($config)
+      ->delete();
+  }
 
-  // Output logged messages to related channel of update execution.
-  return $updateHelper->logger()->output();
-}
-
-/**
- * Update Album permissions.
- */
-function social_album_update_11402(): void {
-  user_role_grant_permissions(
-    RoleInterface::ANONYMOUS_ID,
-    [
-      'view node.album.field_content_visibility:public content',
-    ]
-  );
-
-  user_role_grant_permissions(
-    'verified',
-    [
-      'view node.album.field_content_visibility:community content',
-    ]
-  );
-}
-
-/**
- * Update Album permissions.
- */
-function social_album_update_11403(): void {
-  _social_album_set_group_permissions();
-}
-
-/**
- * Update entity_reference display, remove contextual filter.
- */
-function social_album_update_11470(): string {
-  /** @var \Drupal\update_helper\Updater $updateHelper */
-  $updateHelper = \Drupal::service('update_helper.updater');
-
-  // Execute configuration update definitions with logging of success.
-  $updateHelper->executeUpdate('social_album', __FUNCTION__);
-
-  // Output logged messages to related channel of update execution.
-  return $updateHelper->logger()->output();
-}
-
-/**
- * Update pager.
- */
-function social_album_update_11471(): string {
-  /** @var \Drupal\update_helper\Updater $updateHelper */
-  $updateHelper = \Drupal::service('update_helper.updater');
-
-  // Execute configuration update definitions with logging of success.
-  $updateHelper->executeUpdate('social_album', __FUNCTION__);
-
-  // Output logged messages to related channel of update execution.
-  return $updateHelper->logger()->output();
 }

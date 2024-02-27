@@ -12,26 +12,6 @@
  */
 function social_swiftmail_install() {
   $config_factory = \Drupal::configFactory();
-  // Alter swift settings.
-  $config_factory->getEditable('swiftmailer.message')
-    ->set('format', 'text/html')
-    ->set('respect_format', FALSE)
-    ->save();
-  // Alter mailsystem settings.
-  $config_factory->getEditable('mailsystem.settings')
-    ->set('theme', 'default')
-    ->set('defaults.sender', 'social_swiftmailer')
-    ->set('defaults.formatter', 'social_swiftmailer')
-    ->set('modules.swiftmailer.none.sender', 'social_swiftmailer')
-    ->set('modules.swiftmailer.none.formatter', 'social_swiftmailer')
-    ->save();
-
-  // Ensure the sendmail mode matches the PHP.ini configuration.
-  $sendmail_path = ini_get('sendmail_path');
-  $sendmail_mode = ($sendmail_path !== FALSE && str_contains($sendmail_path, '-bs')) ? 'bs' : 't';
-  $config_factory->getEditable('swiftmailer.transport')
-    ->set('sendmail_mode', $sendmail_mode)
-    ->save();
 
   // Grant the default permissions for this feature.
   user_role_grant_permissions(
@@ -53,75 +33,42 @@ function social_swiftmail_install() {
       'administer social swiftmail',
     ]
   );
-}
 
-/**
- * Set which theme to use when sending emails.
- */
-function social_swiftmail_update_8001() {
-  // Alter mailsystem settings.
-  $mailsystem_settings = \Drupal::configFactory()->getEditable('mailsystem.settings');
-  $mailsystem_settings->set('theme', 'default')->save();
-}
+  // Remove unnecessary mailer policies and set the correct theme to the default
+  // policy.
+  $keys = $config_factory->listAll('symfony_mailer.mailer_policy.');
 
-/**
- * Set swiftmail permissions for sitemanagers settings.
- */
-function social_swiftmail_update_8002() {
-  // Give SM the correct permission.
-  user_role_grant_permissions('sitemanager', [
-    'use text format mail_html',
-    'administer social swiftmail',
-  ]);
-}
+  foreach ($keys as $key) {
+    $config = $config_factory->getEditable($key);
 
-/**
- * Allow using the "Mail HTML" text format by the logged user.
- */
-function social_swiftmail_update_8003() {
-  $roles = \Drupal::entityQuery('user_role')
-    ->condition('id', [
-      'authenticated',
-      'contentmanager',
-    ], 'IN')
-    ->execute();
+    if ($key === 'symfony_mailer.mailer_policy._') {
+      // Get our mailer_policy configuration.
+      $configuration = $config->getOriginal('configuration');
 
-  foreach ($roles as $role) {
-    user_role_grant_permissions($role, ['use text format mail_html']);
+      // Unset the old plugin and replace it with the new plugin.
+      if (!empty($configuration) && isset($configuration['mailer_inline_css'])) {
+        unset($configuration['mailer_inline_css']);
+        $configuration['mailer_inline_css_social'] = [];
+      }
+
+      // Make sure we add our fallback text format option.
+      $configuration['mail_html_text_format'] = [];
+      $config->set('configuration', $configuration);
+      $config->save();
+
+      $config
+        ->set('configuration.email_theme.theme', '_default')
+        ->save();
+    }
+    else {
+      $config->delete();
+    }
   }
 }
 
 /**
- * Add a new module setting.
+ * Implements hook_update_last_removed().
  */
-function social_swiftmail_update_11001(): void {
-  $settings = \Drupal::configFactory()->getEditable('social_swiftmail.settings');
-  $settings->set('disabled_user_greeting_key', 'register_no_approval_required')->save();
-}
-
-/**
- * Update the disabled user greetings key to set a default.
- */
-function social_swiftmail_update_11002(): void {
-  $settings = \Drupal::configFactory()->getEditable('social_swiftmail.settings');
-  $disabled_greeting_keys = $settings->get("disabled_user_greeting_keys");
-  $disabled_greeting_keys = array_filter(explode("\r\n", $disabled_greeting_keys));
-
-  $new_disable_greeting_keys = [
-    'register_admin_created',
-    'register_pending_approval',
-    'register_pending_approval_admin',
-    'register_no_approval_required',
-    'status_activated',
-    'status_blocked',
-    'cancel_confirm',
-    'status_canceled',
-    'password_reset',
-  ];
-  $new_disable_greeting_keys = array_diff($new_disable_greeting_keys, $disabled_greeting_keys);
-  foreach ($new_disable_greeting_keys as $new_key) {
-    $disabled_greeting_keys[] = $new_key;
-  }
-
-  $settings->set('disabled_user_greeting_keys', implode("\r\n", $disabled_greeting_keys))->save();
+function social_swiftmail_update_last_removed() : int {
+  return 11004;
 }

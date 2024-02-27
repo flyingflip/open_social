@@ -23,6 +23,7 @@ default:
         - Drupal\social\Behat\AlbumContext
         - Drupal\social\Behat\BookContext
         - Drupal\social\Behat\CKEditorContext
+        - Drupal\social\Behat\CommentContext
         - Drupal\social\Behat\ConfigContext
         - Drupal\social\Behat\EmailContext
         - Drupal\social\Behat\EventContext
@@ -33,6 +34,7 @@ default:
         - Drupal\social\Behat\FileContext
         - Drupal\social\Behat\LogContext
         - Drupal\social\Behat\ModuleContext
+        - Drupal\social\Behat\ProfileContext
         - Drupal\social\Behat\SearchContext
         - Drupal\social\Behat\SocialDrupalContext
         - Drupal\social\Behat\SocialMessageContext
@@ -40,6 +42,7 @@ default:
         - Drupal\social\Behat\ThemeContext
         - Drupal\social\Behat\TopicContext
         - Drupal\social\Behat\UserContext
+        - Drupal\social\Behat\TaggingContext
   extensions:
     Drupal\social\Behat\Chrome\ChromeExtension: ~
     Drupal\MinkExtension:
@@ -53,6 +56,7 @@ default:
           chrome:
             api_url: "http://chrome:9222"
             validate_certificate: false
+            socket_timeout: 60
     Drupal\DrupalExtension:
       api_driver: 'drupal'
       drupal:

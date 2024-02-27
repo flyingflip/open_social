@@ -42,11 +42,11 @@ class UniqueNicknameValidator extends ConstraintValidator implements ContainerIn
   /**
    * {@inheritdoc}
    */
-  public function validate($items, Constraint $constraint) {
+  public function validate(mixed $items, Constraint $constraint) {
     foreach ($items as $item) {
       // Next check if the value is unique.
       if (!$this->isUnique($item->value)) {
-        $this->context->addViolation($constraint->notUnique, ['%value' => $item->value]);
+        $this->context->addViolation($constraint->notUnique);
       }
     }
   }
@@ -65,13 +65,17 @@ class UniqueNicknameValidator extends ConstraintValidator implements ContainerIn
     // Get all profiles with the provided nickname.
     $profiles = $this->profileStorage->loadByProperties(['field_profile_nick_name' => $value]);
 
-    // Remove current profile from profiles.
-    foreach ($profiles as $key => $profile) {
-      // Get the profile we're performing actions on.
-      $current_profile = _social_profile_get_profile_from_route();
+    // Check if this is a new user just trying to sign up.
+    $new_profile = $this->context->getRoot()->getValue()->isNew();
 
-      if ($profile->id() === $current_profile->get('profile_id')->value) {
-        unset($profiles[$key]);
+    if (!$new_profile) {
+      foreach ($profiles as $key => $profile) {
+        // Get the profile we're performing actions on.
+        $current_profile = _social_profile_get_profile_from_route();
+
+        if ($profile->id() === $current_profile->get('profile_id')->value) {
+          unset($profiles[$key]);
+        }
       }
     }
 

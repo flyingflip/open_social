@@ -112,9 +112,16 @@ function social_ajax_comments_comment_links_alter(array &$links, CommentInterfac
     $wrapper_id = Html::getId(
       $commented_entity->getEntityTypeId() . '-' . $commented_entity->bundle() . '-' . 'field_post_comments' . '-' . $commented_entity->id()
     );
-    $links['comment']['#links']['comment-edit']['attributes']['data-wrapper-html-id'] = $wrapper_id;
-    $links['comment']['#links']['comment-unpublish']['attributes']['data-wrapper-html-id'] = $wrapper_id;
-    $links['comment']['#links']['comment-delete']['attributes']['data-wrapper-html-id'] = $wrapper_id;
+
+    if (!empty($links['comment']['#links']['comment-edit'])) {
+      $links['comment']['#links']['comment-edit']['attributes']['data-wrapper-html-id'] = $wrapper_id;
+    }
+    if (!empty($links['comment']['#links']['comment-unpublish'])) {
+      $links['comment']['#links']['comment-unpublish']['attributes']['data-wrapper-html-id'] = $wrapper_id;
+    }
+    if (!empty($links['comment']['#links']['comment-delete'])) {
+      $links['comment']['#links']['comment-delete']['attributes']['data-wrapper-html-id'] = $wrapper_id;
+    }
   }
 }
 
@@ -254,4 +261,20 @@ function social_ajax_comments_form_comment_form_alter(array &$form, FormStateInt
   if (in_array(\Drupal::routeMatch()->getRouteName(), ['comment.reply', 'entity.comment.edit_form'])) {
     unset($form['actions']['submit']['#ajax']);
   }
+}
+
+/**
+ * Implements hook_batch_alter().
+ */
+function social_ajax_comments_batch_alter(array &$batch): void {
+  /** @var \Drupal\Core\Form\FormStateInterface|null $form_state */
+  $form_state = $batch['form_state'] ?? NULL;
+
+  if (empty($form_state) || $form_state->getValue('form_id') != 'comment_comment_delete_form' || !empty($batch['batch_redirect'])) {
+    return;
+  }
+
+  $form_state->disableRedirect(FALSE);
+  $batch['batch_redirect'] = $form_state->getRedirect();
+  $form_state->disableRedirect();
 }

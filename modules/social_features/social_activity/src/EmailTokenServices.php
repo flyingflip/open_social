@@ -241,17 +241,25 @@ class EmailTokenServices {
 
     /** @var \Drupal\profile\ProfileStorageInterface $profile_storage */
     $profile_storage = $this->entityTypeManager->getStorage('profile');
-    /** @var \Drupal\profile\Entity\Profile $profile */
+    /** @var \Drupal\profile\Entity\Profile|null $profile */
     $profile = $profile_storage->loadByUser($user, 'profile');
     // Add the profile image.
     /** @var \Drupal\image\Entity\ImageStyle $image_style */
     $image_style = ImageStyle::load('social_medium');
 
-    /** @var \Drupal\file\FileInterface $image */
-    $image = !$profile->get('field_profile_image')->isEmpty() ? $profile->get('field_profile_image')->entity : '';
+    if (!$profile) {
+      return $preview_info;
+    }
+
+    /** @var \Drupal\file\FileInterface $image|null */
+    $image = NULL;
+    if ($profile->hasField('field_profile_image')) {
+      $image = !$profile->get('field_profile_image')->isEmpty() ? $profile->get('field_profile_image')->entity : NULL;
+    }
 
     if (
       $image instanceof FileInterface &&
+      !is_null($image->getFileUri()) &&
       $this->streamWrapperManager->getScheme($image->getFileUri()) !== 'private'
     ) {
       $image_url = $image_style->buildUrl($image->getFileUri());
@@ -260,7 +268,9 @@ class EmailTokenServices {
       // Add default image.
       if (!empty($default_image['id'])) {
         $file = File::load($default_image['id']);
-        $image_url = $image_style->buildUrl($file->getFileUri());
+        // The function getFileUri can return string or null and buildUrl only,
+        // accept string, I added this validation to avoid warnings.
+        $image_url = ($file && $file->getFileUri()) ? $image_style->buildUrl($file->getFileUri()) : NULL;
       }
     }
     // Add the profile image.

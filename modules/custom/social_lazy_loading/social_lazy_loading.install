@@ -8,27 +8,18 @@
 /**
  * Implements hook_install().
  *
- * Perform actions related to the installation of social_language.
+ * Perform actions related to the installation of social_lazy_loading.
  */
-function social_lazy_loading_install() {
-  // Enable the submodule, it's standalone so don't depend on it.
-  install_lazy_loading_images();
+function social_lazy_loading_install(): void {
+  // Set default settings, prefer using native lazy loading.
+  \Drupal::configFactory()->getEditable('lazy.settings')
+    ->set('preferNative', TRUE)->save();
 }
 
 /**
- * Function that enables the lazy loading images module.
+ * Set default settings, prefer using native lazy loading.
  */
-function install_lazy_loading_images() {
-  $module = [
-    'social_lazy_loading_images',
-  ];
-
-  \Drupal::service('module_installer')->install($module);
-}
-
-/**
- * Install social_lazy_loading_images module.
- */
-function social_lazy_loading_update_8601() {
-  install_lazy_loading_images();
+function social_lazy_loading_update_12100(): void {
+  \Drupal::configFactory()->getEditable('lazy.settings')
+    ->set('preferNative', TRUE)->save();
 }

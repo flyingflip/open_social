@@ -65,17 +65,6 @@ interface SocialGroupHelperServiceInterface {
   public function getGroupFromEntity(array $entity, bool $read_cache = TRUE): ?int;
 
   /**
-   * Returns the default visibility.
-   *
-   * @param string $type
-   *   The Group Type.
-   *
-   * @return string|null
-   *   The default visibility.
-   */
-  public static function getDefaultGroupVisibility(string $type);
-
-  /**
    * Returns the statically cached group members form the current group.
    *
    * @return array

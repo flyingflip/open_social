@@ -12,10 +12,10 @@ Feature: Inform about personal data collection
       | behatuser          | behatuser@example.com          | 1      | verified      |
 
     Given I enable the module "social_gdpr"
-
+    Given I turn off ckeditor
     Given I am logged in as "behatadministrator"
     When I am on "admin/config/people/data-policy/settings"
-    And I fill in "Consent text" with "I agree with the [id:1]"
+    And I fill in "Consent text" with "I read and consent to the [id:1]"
     Then I press "Save configuration"
 
     When I am on "admin/structure/block/add/data_policy_inform_block/"
@@ -36,13 +36,8 @@ Feature: Inform about personal data collection
 
     When I fill in "Title" with "Inform block title for sign up page"
     And I fill in "Page" with "/user/register"
-    And I fill in the "Summary" WYSIWYG editor with "Inform block summary for sign up page"
-    And I fill in the "Description" WYSIWYG editor with "Inform block description for sign up page"
-    And I press "Save"
-    Then I should be on "admin/config/system/inform-consent/add"
-    And I should see "Machine-readable name" in the ".form-item--id.form-type--machine-name label.form-required" element
-
-    When I fill in "Machine-readable name" with "sign_up"
+    And I fill in "Summary" with "Inform block summary for sign up page"
+    And I fill in "Description" with "Inform block description for sign up page"
     And I press "Save"
     Then I should be on "admin/config/system/inform-consent"
     And I should see the text "Saved the Inform block title for sign up page Example."
@@ -59,14 +54,14 @@ Feature: Inform about personal data collection
     When I click "Read more"
     And I wait for AJAX to finish
     Then I should see "Inform block title for sign up page" in the ".ui-dialog-title" element
-    And I should see "Inform block description for sign up page" in the ".ui-dialog-content p" element
+    And I should see "Inform block description for sign up page" in the ".ui-dialog-content" element
 
     When I am logged in as "behatadministrator"
     And I am on "admin/config/system/inform-consent/add"
     And I fill in "Title" with "Inform block title for user edit page"
     And I fill in "Page" with "/user/*/edit"
-    And I fill in the "Summary" WYSIWYG editor with "Inform block summary for user edit page"
-    And I press "Save"
+    And I fill in "Summary" with "Inform block summary for user edit page"
+    And I press the "Edit" button
     And I fill in "Machine-readable name" with "user_edit"
     And I press "Save"
 
@@ -89,5 +84,5 @@ Feature: Inform about personal data collection
 
     When I am logged in as "behatadministrator"
     And I am on "admin/config/people/data-policy/settings"
-    And I fill in "Consent text" with "I agree with the [id:1*]"
+    And I fill in "Consent text" with "I read and consent to the [id:1*]"
     Then I press "Save configuration"
