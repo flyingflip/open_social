@@ -127,7 +127,7 @@
         },
         "drupal-scaffold": {
             "locations": {
-                "web-root": "docroot/"
+                "web-root": "html/"
             }
         }
     },

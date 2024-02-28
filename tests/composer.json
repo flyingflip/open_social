@@ -38,7 +38,7 @@
         "composer-exit-on-patch-failure": true,
         "drupal-scaffold": {
             "locations": {
-                "web-root": "docroot/"
+                "web-root": "html/"
             }
         },
         "installer-types": [
