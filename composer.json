@@ -124,6 +124,11 @@
             "drupal/votingapi": {
                 "Issue #3341513: Voting Storages does not check access on entity query\n": "https://www.drupal.org/files/issues/2023-07-06/3341513_votingapi_use-access-checks-14.diff"
             }
+        },
+        "drupal-scaffold": {
+            "locations": {
+                "web-root": "docroot/"
+            }
         }
     },
     "require": {
